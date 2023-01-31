@@ -4,8 +4,7 @@
   "description": "websocket backend for chatroom",
   "main": "server.js",
   "scripts": {
-    "dev": "nodemon server.js",
-    "ws": "nodemon socketserver.js",
+    "dev": "nodemon socketserver.js",
     "test": "echo \"Error: no test specified\" && exit 1"
   },
   "author": "nitish sharma",
