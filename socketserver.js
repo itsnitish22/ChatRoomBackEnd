@@ -5,7 +5,7 @@ const { Server } = require("socket.io"); //import socketio
 const io = new Server(server); //creating io server
 const PORT = process.env.PORT || 3000 //port if env.PORT is available otherwise 3000
 
-var usernames = {} //maintaining usernames
+var activeUsernames = {} //maintaining usernames
 var activeRooms = [] //maintaining active rooms
 
 //on new connections
@@ -23,11 +23,24 @@ io.on('connection', (socket) => {
     })
 
     //when joining a room
-    socket.on('join-room', (data) => {
+    socket.on('join-room', (data) => { //data will have username, roomid, message
         if (activeRooms.includes(data.roomid)) { //chec if the room exist
+
+            activeUsernames[data.username] = username //adding username to global username
+            socket.username = username //store username in socket session for this client
+
             socket.join(data.roomid) //join the room
             socket.broadcast.to(data.roomid).emit('update-about-room', data.username + ' has connected to this room'); //broadcast msg to that room about the joining of new user
         }
+    })
+
+    //when user disconnects    
+    socket.on('disconnect', (data) => { //data will have username, room id
+        delete activeUsernames[socket.username] //deleting the disconnecting user from activeUsers
+
+        socket.broadcast.to(data.roomid).emit('update-about-room', data.username + ' left this room this room'); //broadcast msg to that room about the leaving of new user
+
+        socket.leave(data.roomid) //leaving the room
     })
 });
 
