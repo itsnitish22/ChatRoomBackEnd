@@ -12,8 +12,8 @@ var activeRooms = [] //maintaining active rooms
 io.on('connection', (socket) => {
 
     //broadcasting msg except itself
-    socket.on('chat-message', (msg) => {
-        socket.broadcast.to(data.roomid).emit('chat-message', msg);
+    socket.on('chat-message', (data) => {
+        socket.broadcast.to(data.roomid).emit('chat-message', data.msg);
     });
 
     //create room event
@@ -26,8 +26,8 @@ io.on('connection', (socket) => {
     socket.on('join-room', (data) => { //data will have username, roomid, message
         if (activeRooms.includes(data.roomid)) { //chec if the room exist
 
-            activeUsernames[data.username] = username //adding username to global username
-            socket.username = username //store username in socket session for this client
+            activeUsernames[data.username] = data.username //adding username to global username
+            socket.username = data.username //store username in socket session for this client
 
             socket.join(data.roomid) //join the room
             socket.broadcast.to(data.roomid).emit('update-about-room', data.username + ' has connected to this room'); //broadcast msg to that room about the joining of new user
