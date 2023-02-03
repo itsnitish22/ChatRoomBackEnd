@@ -13,7 +13,7 @@ io.on('connection', (socket) => {
 
     //broadcasting msg except itself
     socket.on('chat-message', (data) => {
-        socket.broadcast.to(data.roomid).emit('chat-message', data.msg);
+        socket.broadcast.to(data.roomid).emit('chat-message', data);
     });
 
     //create room event
@@ -30,7 +30,9 @@ io.on('connection', (socket) => {
             socket.username = data.username //store username in socket session for this client
 
             socket.join(data.roomid) //join the room
-            socket.broadcast.to(data.roomid).emit('update-about-room', data.username + ' has connected to this room'); //broadcast msg to that room about the joining of new user
+            socket.broadcast.to(data.roomid).emit('room-event', data.username + ' has connected to this room'); //broadcast msg to that room about the joining of new user
+        } else {
+            socket.emit('room-error', "the room does not exist")
         }
     })
 
@@ -38,7 +40,7 @@ io.on('connection', (socket) => {
     socket.on('disconnect', (data) => { //data will have username, room id
         delete activeUsernames[socket.username] //deleting the disconnecting user from activeUsers
 
-        socket.broadcast.to(data.roomid).emit('update-about-room', data.username + ' left this room this room'); //broadcast msg to that room about the leaving of new user
+        socket.broadcast.to(data.roomid).emit('room-event', data.username + ' left this room this room'); //broadcast msg to that room about the leaving of new user
 
         socket.leave(data.roomid) //leaving the room
     })
