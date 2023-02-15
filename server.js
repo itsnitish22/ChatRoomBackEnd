@@ -20,7 +20,6 @@ io.on('connection', (socket) => {
         }
     })
 
-
     //when joining a room
     socket.on('join-room', async (data) => { //data will have username, roomid, message
         try {
