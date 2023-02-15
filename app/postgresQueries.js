@@ -8,6 +8,7 @@ const { Client } = require('pg')
 //     port: process.env.LOCAL_POSTGRES_PORT,
 // })
 
+//credentials postgres server
 const client = new Client({
     user: process.env.POSTGRES_USERNAME,
     host: process.env.POSTGRES_HOSTNAME,
@@ -17,6 +18,7 @@ const client = new Client({
     ssl: true
 })
 
+//connecting client
 client.connect((err) => {
     if (err) {
         console.log(`error connecting to DB ${err}`)
@@ -25,6 +27,7 @@ client.connect((err) => {
     }
 })
 
+//inserting room into the db
 async function insertRoomIntoDBMappedToUserID(data) {
     const query = `insert into chatroom_rooms(user_id, room_id, room_name, is_active) values ($1, $2, $3, $4)`
     const values = [data.userId, data.roomId, data.roomName, true]
@@ -37,6 +40,7 @@ async function insertRoomIntoDBMappedToUserID(data) {
     })
 }
 
+//fetching active status from db respective to room id
 async function getActiveRoomStatusForAskedRoomID(data) {
     const query = `select is_active from chatroom_rooms where room_id = $1`;
     const values = [data.roomId];
@@ -62,6 +66,7 @@ async function getActiveRoomStatusForAskedRoomID(data) {
     return isActiveRoom;
 }
 
+//fetching room name respective to room id
 async function getActiveRoomNameForAskedRoomID(data) {
     const query = `select room_name from chatroom_rooms where room_id = $1`;
     const values = [data.roomId];
@@ -87,11 +92,10 @@ async function getActiveRoomNameForAskedRoomID(data) {
     return roomName;
 }
 
+//exporting the functions
 module.exports = {
     insertRoomIntoDBMappedToUserID,
     getActiveRoomStatusForAskedRoomID,
     getActiveRoomNameForAskedRoomID
 }
-// module.exports = insertRoomIntoDBMappedToUserID
-// module.exports = getActiveRoomStatusForAskedRoomID
 

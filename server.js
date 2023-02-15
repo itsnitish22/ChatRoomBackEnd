@@ -4,7 +4,7 @@ const server = http.createServer(app); //create server
 const { Server } = require("socket.io"); //import socketio
 const io = new Server(server); //creating io server
 const PORT = process.env.PORT || 3000 //port if env.PORT is available otherwise 3000
-const postgresQueries = require('./app/postgresQueries')
+const postgresQueries = require('./app/postgresQueries') //importing postgres queries
 
 //on new connections
 io.on('connection', (socket) => {
@@ -12,7 +12,7 @@ io.on('connection', (socket) => {
     //create room event
     socket.on('create-room', async (data) => {
         try {
-            postgresQueries.insertRoomIntoDBMappedToUserID(data)
+            postgresQueries.insertRoomIntoDBMappedToUserID(data) //inserting new room with active status to db
             socket.rooms[data.roomId] = data.roomName //create a room in socketio
             console.log(socket.rooms) //logging //!removal
         } catch (err) {
@@ -24,8 +24,8 @@ io.on('connection', (socket) => {
     //when joining a room
     socket.on('join-room', async (data) => { //data will have username, roomid, message
         try {
-            const roomExists = await postgresQueries.getActiveRoomStatusForAskedRoomID(data)
-            if (roomExists) {
+            const roomExists = await postgresQueries.getActiveRoomStatusForAskedRoomID(data) //fetching room active status
+            if (roomExists) { //checking if room exists
                 socket.username = data.userName //store username in socket session for this client //? needed???
                 socket.join(data.roomId) //join the room
                 socket.broadcast.to(data.roomId).emit('join-room-event', data.userName + ' has connected to this room'); //broadcast msg to that room about the joining of new user
