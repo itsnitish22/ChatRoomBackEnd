@@ -2,6 +2,7 @@ const express = require('express'); //express
 const app = express(); //created app using express
 const morgan = require('morgan') //morgan for logging
 const path = require('path') //path to resolve path refs
+require('dotenv').config()
 
 app.use(morgan('dev')) //morgan for dev
 //landing page
