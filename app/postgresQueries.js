@@ -93,7 +93,7 @@ async function getActiveRoomNameForAskedRoomID(data) {
 }
 
 //getting all active rooms for a user id
-async function getAllActiveRoomsForAskedUserId(userId) {
+async function getAllUserActiveRooms(userId) {
     const query = `select * from chatroom_rooms where user_id = $1 and is_active = true`;
     const values = [userId];
 
@@ -120,6 +120,6 @@ module.exports = {
     insertRoomIntoDBMappedToUserID,
     getActiveRoomStatusForAskedRoomID,
     getActiveRoomNameForAskedRoomID,
-    getAllActiveRoomsForAskedUserId
+    getAllUserActiveRooms
 }
 
