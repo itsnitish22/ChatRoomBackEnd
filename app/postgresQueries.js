@@ -1,4 +1,5 @@
-const { Client } = require('pg')
+const { Client } = require('pg') //client for postgres 
+require('dotenv').config() //config env
 
 // const client = new Client({
 //     user: process.env.LOCAL_POSTGRES_USERNAME,
@@ -8,7 +9,7 @@ const { Client } = require('pg')
 //     port: process.env.LOCAL_POSTGRES_PORT,
 // })
 
-//credentials postgres server
+// credentials postgres server
 const client = new Client({
     user: process.env.POSTGRES_USERNAME,
     host: process.env.POSTGRES_HOSTNAME,
@@ -59,7 +60,6 @@ async function getActiveRoomStatusForAskedRoomID(data) {
             } catch {
                 console.log(`name: ${data.roomId} does not exist`)
             }
-
         });
     });
 
@@ -92,10 +92,34 @@ async function getActiveRoomNameForAskedRoomID(data) {
     return roomName;
 }
 
+//getting all active rooms for a user id
+async function getAllActiveRoomsForAskedUserId(userId) {
+    const query = `select * from chatroom_rooms where user_id = $1 and is_active = true`;
+    const values = [userId];
+
+    const result = await new Promise((resolve, reject) => {
+        client.query(query, values, (err, result) => {
+            try {
+                if (err) {
+                    console.log(err);
+                    reject(err);
+                } else {
+                    resolve(result);
+                }
+            } catch {
+                console.log(`name: ${data.roomId} does not exist`)
+            }
+        });
+    });
+
+    return result;
+}
+
 //exporting the functions
 module.exports = {
     insertRoomIntoDBMappedToUserID,
     getActiveRoomStatusForAskedRoomID,
-    getActiveRoomNameForAskedRoomID
+    getActiveRoomNameForAskedRoomID,
+    getAllActiveRoomsForAskedUserId
 }
 
