@@ -2,8 +2,8 @@ const express = require('express'); //express
 const app = express(); //created app using express
 const morgan = require('morgan') //morgan for logging
 const path = require('path') //path to resolve path refs
-const dbRoutes = require('../model/databaseRoutes')
-var bodyParser = require('body-parser')
+const dbRoutes = require('../model/databaseRoutes') //api for db routes
+var bodyParser = require('body-parser') //body parser
 require('dotenv').config() //config env
 
 app.use(morgan('dev')) //morgan for dev
