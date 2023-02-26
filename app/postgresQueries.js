@@ -1,3 +1,4 @@
+const { resolve } = require('path')
 const { Client } = require('pg') //client for postgres 
 require('dotenv').config() //config env
 
@@ -115,11 +116,37 @@ async function getAllUserActiveRooms(userId) {
     return result;
 }
 
+//delele a room using roomid
+async function deleteRoom(roomId) {
+    const query = `delete from chatroom_rooms where room_id = $1`
+    const values = [roomId]
+
+    const result = await new Promise((resolve, reject) => {
+        client.query(query, values, (err, result) => {
+            try {
+                if (err) {
+                    console.log(err)
+                    reject(err)
+                    return false
+                } else {
+                    resolve(result)
+                }
+            } catch {
+                console.log(`name: ${data.roomId} does not exist`)
+                return false
+            }
+        })
+    })
+
+    return true
+}
+
 //exporting the functions
 module.exports = {
     insertRoomIntoDBMappedToUserID,
     getActiveRoomStatusForAskedRoomID,
     getActiveRoomNameForAskedRoomID,
-    getAllUserActiveRooms
+    getAllUserActiveRooms,
+    deleteRoom
 }
 

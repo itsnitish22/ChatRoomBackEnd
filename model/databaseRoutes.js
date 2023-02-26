@@ -23,5 +23,25 @@ router.post('/getAllUserActiveRooms', async (req, res) => {
     }
 })
 
+//delete a room
+router.post('/deleteRoom', async (req, res) => {
+    try {
+        console.log(req.body)
+        const result = await postgresQueries.deleteRoom(req.body.roomId)
+        if (result)
+            res.status(200).json({
+                message: 'room deleted successfully'
+            })
+        else
+            res.status(200).json({
+                message: 'room does not exist'
+            })
+    } catch (err) {
+        res.status(500).json({
+            error: err
+        })
+    }
+})
+
 //exporting router
 module.exports = router
