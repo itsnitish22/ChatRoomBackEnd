@@ -54,7 +54,6 @@ io.on('connection', (socket) => {
             if (roomExists) {
                 socket.broadcast.to(data.roomId).emit('chat-message', data); //broadcast to specific room
                 console.log(data) //!removal
-                // socket.emit('chat-message', data)
             }
         } catch (err) {
             socket.emit('chat-message-error', err) //error
