@@ -43,5 +43,25 @@ router.post('/deleteCurrentRoom', async (req, res) => {
     }
 })
 
+router.post('/saveUserToDb', async (req, res) => {
+    try {
+        console.log(req.body)
+        const result = await postgresQueries.saveUserToDb(req.body)
+        if (result) {
+            res.status(200).json({
+                message: 'user saved to db successfully'
+            })
+        } else {
+            res.status(404).json({
+                message: 'unable to save user to db'
+            })
+        }
+    } catch (err) {
+        res.status(500).json({
+            error: err
+        })
+    }
+})
+
 //exporting router
 module.exports = router

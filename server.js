@@ -20,6 +20,7 @@ io.on('connection', (socket) => {
         }
     })
 
+
     //when joining a room
     socket.on('join-room', async (data) => { //data will have username, roomid, message
         try {
@@ -66,7 +67,7 @@ io.on('connection', (socket) => {
     socket.on('leave-room', async (data) => { //data will have username, roomid, message
         const roomExists = await postgresQueries.getActiveRoomStatusForAskedRoomID(data)
         if (roomExists) {
-            socket.broadcast.to(data.roomId).emit('leave-room-event', data.userName + ' left this room this room'); //broadcast msg to that room about the leaving of new user
+            socket.broadcast.to(data.roomId).emit('leave-room-event', data.userName + ' left this room'); //broadcast msg to that room about the leaving of new user
             socket.leave(data.roomId) //leaving the room
         } else {
             socket.emit('room-error', "the room does not exist") // error
