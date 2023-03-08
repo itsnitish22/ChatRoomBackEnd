@@ -141,12 +141,39 @@ async function deleteRoom(roomId) {
     return true
 }
 
+
+//delele a room using roomid
+async function saveUserToDb(data) {
+    const query = `insert into chatroom_users (user_id, user_name, user_avatar) values ($1, $2, $3)`
+    const values = [data.userId, data.userName, data.userAvatar]
+
+    const result = await new Promise((resolve, reject) => {
+        client.query(query, values, (err, result) => {
+            try {
+                if (err) {
+                    console.log(err)
+                    reject(err)
+                    return false
+                } else {
+                    resolve(result)
+                }
+            } catch {
+                console.log(`name: ${data.roomId} does not exist`)
+                return false
+            }
+        })
+    })
+
+    return true
+}
+
 //exporting the functions
 module.exports = {
     insertRoomIntoDBMappedToUserID,
     getActiveRoomStatusForAskedRoomID,
     getActiveRoomNameForAskedRoomID,
     getAllUserActiveRooms,
-    deleteRoom
+    deleteRoom,
+    saveUserToDb
 }
 
