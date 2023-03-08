@@ -45,8 +45,8 @@ router.post('/deleteCurrentRoom', async (req, res) => {
 
 router.post('/saveUserToDb', async (req, res) => {
     try {
-        console.log(req.body)
-        const result = await postgresQueries.saveUserToDb(req.body)
+        console.log(req.body.nameValuePairs)
+        const result = await postgresQueries.saveUserToDb(req.body.nameValuePairs)
         if (result) {
             res.status(200).json({
                 message: 'user saved to db successfully'
