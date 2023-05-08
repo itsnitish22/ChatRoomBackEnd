@@ -17,8 +17,9 @@ router.post('/getAllUserActiveRooms', async (req, res) => {
         // }, 3000);
 
     } catch (err) {
+        console.log(err)
         res.status(500).json({
-            error: err
+            error: err.message
         })
     }
 })
@@ -37,8 +38,9 @@ router.post('/deleteCurrentRoom', async (req, res) => {
                 message: 'room does not exist'
             })
     } catch (err) {
+        console.log(err)
         res.status(500).json({
-            error: err
+            error: err.message
         })
     }
 })
@@ -57,8 +59,88 @@ router.post('/saveUserToDb', async (req, res) => {
             })
         }
     } catch (err) {
+        console.log(err)
         res.status(500).json({
-            error: err
+            error: err.message
+        })
+    }
+})
+
+//can user join the room
+router.post('/canJoinRoom', async (req, res) => {
+    try {
+        console.log(req.body.nameValuePairs)
+        const result = await postgresQueries.getRoomCreatorId(req.body.nameValuePairs)
+        if (req.body.nameValuePairs.userId == result) { //if creator_id (result) == userId, this means the creator is trying to join the room by copying and pasting the room_id in bottom sheet
+            res.status(200).json({ //send a message to him, to click on the room below and join
+                canJoin: false,
+                actionForUser: "Try clicking on your room listed below"
+            })
+        } else { //else means that creator_id (result) and userId are not same, this means userId is of joiner
+            const result = await postgresQueries.getActiveRoomStatusForAskedRoomID(req.body.nameValuePairs) //get is_active status for the room
+            if (result) { //if it is available, join the room
+                res.status(200).json({
+                    canJoin: true,
+                    actionForUser: "You can join the room!"
+                })
+            } else { //otherwise, send msg that room is full
+                res.status(200).json({
+                    canJoin: false,
+                    actionForUser: "Room is full!"
+                })
+            }
+        }
+    }
+    catch (err) {
+        console.log(err)
+        res.status(500).json({
+            error: err.message
+        })
+    }
+})
+
+//update joiner_id in room [null or joiner_id (some id)]
+router.post('/updateJoinerInChatRoom', async (req, res) => {
+    try {
+        console.log(req.body.nameValuePairs)
+        const result = await postgresQueries.updateJoinerInChatRoom(req.body.nameValuePairs.userId, req.body.nameValuePairs.roomId)
+        if (result) {
+            res.status(200).json({
+                message: 'joiner_id updated successfully'
+            })
+        } else {
+            res.status(404).json({
+                message: 'unable to update joiner_id'
+            })
+        }
+    }
+    catch (err) {
+        console.log(err)
+        res.status(500).json({
+            error: err.message
+        })
+    }
+})
+
+//update is_available status for the room
+router.post('/updateRoomIsAvailableStatus', async (req, res) => {
+    try {
+        console.log(req.body.nameValuePairs)
+        const result = await postgresQueries.updateRoomIsAvailableStatus(req.body.nameValuePairs)
+        if (result) {
+            res.status(200).json({
+                statusUpdated: true
+            })
+        } else {
+            res.status(200).json({
+                statusUpdated: false
+            })
+        }
+    }
+    catch (err) {
+        console.log(err)
+        res.status(500).json({
+            error: err.message
         })
     }
 })

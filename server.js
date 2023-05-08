@@ -12,7 +12,7 @@ io.on('connection', (socket) => {
     //create room event
     socket.on('create-room', async (data) => {
         try {
-            postgresQueries.insertRoomIntoDBMappedToUserID(data) //inserting new room with active status to db
+            postgresQueries.insertroomIntoDB(data) //inserting new room with active status to db
             socket.rooms[data.roomId] = data.roomName //create a room in socketio
             console.log(socket.rooms) //logging //!removal
         } catch (err) {
@@ -67,6 +67,7 @@ io.on('connection', (socket) => {
     socket.on('leave-room', async (data) => { //data will have username, roomid, message
         const roomExists = await postgresQueries.getActiveRoomStatusForAskedRoomID(data)
         if (roomExists) {
+            const leftRoom = await postgresQueries.updateJoinerLeftStatus(data)
             socket.broadcast.to(data.roomId).emit('leave-room-event', data.userName + ' left this room'); //broadcast msg to that room about the leaving of new user
             socket.leave(data.roomId) //leaving the room
         } else {
