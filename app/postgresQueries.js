@@ -32,7 +32,7 @@ client.connect((err) => {
 //inserting room into the db
 async function insertroomIntoDB(data) {
     const query = `insert into chatting_rooms(room_id, creator_id, joiner_id, room_name, is_active, is_available, created_at, last_activity) values ($1, $2, $3, $4, $5, $6, NOW() AT TIME ZONE 'Asia/Kolkata', NOW())`
-    const values = [data.roomId, data.creatorId, data.joinerId, data.roomName, true, true]
+    const values = [data.roomId, data.userId, data.joinerId, data.roomName, true, true]
     client.query(query, values, (err, result) => {
         if (err) {
             console.log(err)
@@ -268,6 +268,65 @@ async function updateRoomIsAvailableStatus(data) {
     return statusUpdated;
 }
 
+//updating user's own_rooms count
+async function updateOwnRoomCount(data) {
+    var query = ""
+    if (data.increaseRoomCount)
+        query = `update chatting_users set own_rooms = own_rooms + 1 where user_id = $1`
+    else
+        query = `update chatting_users set own_rooms = own_rooms - 1 where user_id = $1`
+    const values = [data.userId];
+    var updatedRoom = false;
+
+    const result = await new Promise((resolve, reject) => {
+        client.query(query, values, (err, result) => {
+            try {
+                if (err) {
+                    console.log(err);
+                    reject(err);
+                } else {
+                    resolve(result);
+                    updatedRoom = true
+                }
+            } catch {
+                console.log(`name: ${data.userId} does not exist`)
+            }
+        });
+    });
+
+    return updatedRoom;
+}
+
+//updating user's is_free status
+async function updateUserIsFreeStatus(data) {
+    var query = ""
+    if (data.isFree)
+        query = `update chatting_users set is_free = true where user_id = $1`
+    else
+        query = `update chatting_users set is_free = false where user_id = $1`
+    const values = [data.userId];
+    var updatedFreeStatus = false;
+
+    const result = await new Promise((resolve, reject) => {
+        client.query(query, values, (err, result) => {
+            try {
+                if (err) {
+                    console.log(err);
+                    reject(err);
+                } else {
+                    resolve(result);
+                    updatedFreeStatus = true
+                }
+            } catch {
+                console.log(`name: ${data.userId} does not exist`)
+            }
+        });
+    });
+
+    return updatedFreeStatus;
+}
+
+
 //exporting the functions
 module.exports = {
     insertroomIntoDB,
@@ -279,6 +338,8 @@ module.exports = {
     saveUserToDb,
     updateJoinerLeftStatus,
     updateRoomIsAvailableStatus,
-    updateJoinerInChatRoom
+    updateJoinerInChatRoom,
+    updateOwnRoomCount,
+    updateUserIsFreeStatus
 }
 
