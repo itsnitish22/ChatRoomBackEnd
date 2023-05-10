@@ -1,6 +1,7 @@
 const express = require('express') //express
 const router = express.Router() //creating router
 const postgresQueries = require('../app/postgresQueries') //importing postgres queries
+const responseWrapper = require('../utils/responseWrapper')
 
 //getting all active room for a userId
 router.post('/getAllUserActiveRooms', async (req, res) => {
@@ -29,7 +30,8 @@ router.post('/deleteCurrentRoom', async (req, res) => {
     try {
         console.log(req.body.nameValuePairs)
         const result = await postgresQueries.deleteRoom(req.body.nameValuePairs.roomId)
-        if (result)
+        const deletedRoom = await postgresQueries.updateOwnRoomCount(req.body.nameValuePairs)
+        if (result && deletedRoom)
             res.status(200).json({
                 message: 'room deleted successfully'
             })
@@ -71,6 +73,7 @@ router.post('/canJoinRoom', async (req, res) => {
     try {
         console.log(req.body.nameValuePairs)
         const result = await postgresQueries.getRoomCreatorId(req.body.nameValuePairs)
+
         if (req.body.nameValuePairs.userId == result) { //if creator_id (result) == userId, this means the creator is trying to join the room by copying and pasting the room_id in bottom sheet
             res.status(200).json({ //send a message to him, to click on the room below and join
                 canJoin: false,

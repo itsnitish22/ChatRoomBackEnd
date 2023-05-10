@@ -12,7 +12,9 @@ io.on('connection', (socket) => {
     //create room event
     socket.on('create-room', async (data) => {
         try {
-            postgresQueries.insertroomIntoDB(data) //inserting new room with active status to db
+            console.log(data)
+            await postgresQueries.insertroomIntoDB(data) //inserting new room with active status to db
+            await postgresQueries.updateOwnRoomCount(data)
             socket.rooms[data.roomId] = data.roomName //create a room in socketio
             console.log(socket.rooms) //logging //!removal
         } catch (err) {
@@ -29,6 +31,7 @@ io.on('connection', (socket) => {
                 socket.username = data.userName //store username in socket session for this client //? needed???
                 socket.join(data.roomId) //join the room
                 socket.broadcast.to(data.roomId).emit('join-room-event', data.userName + ' has connected to this room'); //broadcast msg to that room about the joining of new user
+                await postgresQueries.updateUserIsFreeStatus(data) //updating is_free in chatting_users
                 const roomName = await postgresQueries.getActiveRoomNameForAskedRoomID(data)
                 socket.emit('join-room-name', roomName) //? needed?
                 console.log('joined') //logging
@@ -67,7 +70,8 @@ io.on('connection', (socket) => {
     socket.on('leave-room', async (data) => { //data will have username, roomid, message
         const roomExists = await postgresQueries.getActiveRoomStatusForAskedRoomID(data)
         if (roomExists) {
-            const leftRoom = await postgresQueries.updateJoinerLeftStatus(data)
+            await postgresQueries.updateJoinerLeftStatus(data) //updating joiner left status in chatting_rooms
+            await postgresQueries.updateUserIsFreeStatus(data) //updating user is_free in chatting_users
             socket.broadcast.to(data.roomId).emit('leave-room-event', data.userName + ' left this room'); //broadcast msg to that room about the leaving of new user
             socket.leave(data.roomId) //leaving the room
         } else {
