@@ -148,5 +148,23 @@ router.post('/updateRoomIsAvailableStatus', async (req, res) => {
     }
 })
 
+router.post('/getUserAvatar', async (req, res) => {
+    try {
+        console.log(req.body.nameValuePairs)
+        const result = await postgresQueries.getUserAvatar(req.body.nameValuePairs)
+        res.status(200).json({
+            userAvatar: result
+        })
+    }
+    catch (err) {
+        console.log(err)
+        res.status(500).json({
+            error: err.message
+        })
+    }
+})
+
+
+
 //exporting router
 module.exports = router

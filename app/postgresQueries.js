@@ -326,6 +326,31 @@ async function updateUserIsFreeStatus(data) {
     return updatedFreeStatus;
 }
 
+async function getUserAvatar(data) {
+    const query = `select user_avatar from chatting_users where user_id = $1`;
+    const values = [data.userId];
+    var avatarUrl = "";
+
+    const result = await new Promise((resolve, reject) => {
+        client.query(query, values, (err, result) => {
+            try {
+                if (err) {
+                    console.log(err);
+                    reject(err);
+                } else {
+                    resolve(result);
+                    avatarUrl = result.rows[0].user_avatar;
+                }
+            } catch {
+                console.log(`name: ${data.userId} does not exist`)
+            }
+
+        });
+    });
+
+    return avatarUrl;
+}
+
 
 //exporting the functions
 module.exports = {
@@ -340,6 +365,7 @@ module.exports = {
     updateRoomIsAvailableStatus,
     updateJoinerInChatRoom,
     updateOwnRoomCount,
-    updateUserIsFreeStatus
+    updateUserIsFreeStatus,
+    getUserAvatar
 }
 
