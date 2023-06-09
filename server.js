@@ -40,6 +40,12 @@ io.on('connection', (socket) => {
             socket.emit('join-room-error', err) //error
         }
     })
+    socket.on('user-joined-room', async (data) => {
+        const roomExists = await postgresQueries.getActiveRoomStatusForAskedRoomID(data)
+        if (roomExists) {
+            socket.broadcast.to(data.roomId).emit('join-room-event', data.userName + ' has connected to this room'); //broadcast msg to that room about the joining of new user
+        }
+    })
 
 
     //broadcast to room about user typing //! currently not used anywhere

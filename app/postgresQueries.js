@@ -1,3 +1,4 @@
+const { rejects } = require('assert')
 const { resolve } = require('path')
 const { Client } = require('pg') //client for postgres 
 require('dotenv').config() //config env
@@ -31,8 +32,8 @@ client.connect((err) => {
 
 //inserting room into the db
 async function insertroomIntoDB(data) {
-    const query = `insert into chatting_rooms(room_id, creator_id, joiner_id, room_name, is_active, is_available, created_at, last_activity) values ($1, $2, $3, $4, $5, $6, NOW() AT TIME ZONE 'Asia/Kolkata', NOW())`
-    const values = [data.roomId, data.userId, data.joinerId, data.roomName, true, true]
+    const query = `insert into chatting_rooms(room_id, creator_id, joiner_id, room_name, is_active, is_available, created_at, last_activity, creator_name) values ($1, $2, $3, $4, $5, $6, NOW() AT TIME ZONE 'Asia/Kolkata', NOW(), $7)`
+    const values = [data.roomId, data.userId, data.joinerId, data.roomName, true, true, data.creatorName]
     client.query(query, values, (err, result) => {
         if (err) {
             console.log(err)
@@ -207,7 +208,7 @@ async function updateJoinerLeftStatus(data) {
                 } else {
                     resolve(result);
                     if (result.rows[0].joiner_id == data.userId) { //if joiner and the person who left the room is same, this means the joiner as left the room [not creator] in that case, mark the joiner_id of that room as null and is_available as true
-                        updateJoinerInChatRoom(null, data.roomId) //update joiner_id as null in that room
+                        updateJoinerInChatRoom(null, data.roomId, null) //update joiner_id as null in that room
                         data["isAvailable"] = true
                         updateRoomIsAvailableStatus(data) //update is_available status to true of that room
                     }
@@ -222,9 +223,9 @@ async function updateJoinerLeftStatus(data) {
 }
 
 //update joiner_id in chatting_rooms
-async function updateJoinerInChatRoom(userId, roomId) {
-    var query = `update chatting_rooms set joiner_id = $1 where room_id = $2`;
-    const values = [userId, roomId];
+async function updateJoinerInChatRoom(userId, roomId, userName) {
+    var query = `update chatting_rooms set joiner_id = $1, joiner_name = $3 where room_id = $2`;
+    const values = [userId, roomId, userName];
 
     const result = await new Promise((resolve, reject) => {
         client.query(query, values, (err, result) => {
@@ -351,6 +352,74 @@ async function getUserAvatar(data) {
     return avatarUrl;
 }
 
+async function addRoomToOtherRoomsArray(data) {
+    const query = `UPDATE chatting_users SET other_room_ids = array_append(other_room_ids, $1) WHERE user_id = $2`
+    const values = [data.roomId, data.userId];
+    var updatedArray = false;
+    const result = await new Promise((resolve, reject) => [
+        client.query(query, values, (err, result) => {
+            try {
+                if (err) {
+                    console.log(err);
+                    reject(err);
+                } else {
+                    resolve(result);
+                    updatedArray = true
+                }
+            } catch {
+                console.log(`name: ${data.userId} does not exist`)
+            }
+        })
+    ])
+    return updatedArray
+}
+
+async function getAllDistinctRoomsFromArrayOfOtherRooms(data) {
+    const query = `SELECT DISTINCT UNNEST(other_room_ids) AS distinct_value FROM chatting_users WHERE user_id = $1`
+    const values = [data.userId];
+
+    var arrayOfDistinctUserIds = []
+    const result = await new Promise((resolve, reject) => {
+        client.query(query, values, (err, result) => {
+            try {
+                if (err) {
+                    console.log(err);
+                    reject(err);
+                } else {
+                    arrayOfDistinctUserIds = result.rows.map(row => row.distinct_value);
+                    console.log("Distinct Values:", arrayOfDistinctUserIds);
+                    resolve(result);
+                }
+            } catch (err) {
+                console.log(err)
+            }
+        });
+    });
+    return arrayOfDistinctUserIds
+}
+
+async function getRoomDetailsFromRoomId(roomId) {
+    const query = `SELECT * FROM chatting_rooms cr WHERE room_id = $1`;
+    const values = [roomId];
+
+    const result = await new Promise((resolve, reject) => {
+        client.query(query, values, (err, result) => {
+            try {
+                if (err) {
+                    console.log(err);
+                    reject(err);
+                } else {
+                    resolve(result);
+                }
+            } catch (err) {
+                console.log(err)
+            }
+        });
+    });
+
+    return result;
+}
+
 
 //exporting the functions
 module.exports = {
@@ -366,6 +435,9 @@ module.exports = {
     updateJoinerInChatRoom,
     updateOwnRoomCount,
     updateUserIsFreeStatus,
-    getUserAvatar
+    getUserAvatar,
+    addRoomToOtherRoomsArray,
+    getAllDistinctRoomsFromArrayOfOtherRooms,
+    getRoomDetailsFromRoomId
 }
 
