@@ -29,16 +29,26 @@ router.post('/getAllUserActiveRooms', async (req, res) => {
 router.post('/deleteCurrentRoom', async (req, res) => {
     try {
         console.log(req.body.nameValuePairs)
-        const result = await postgresQueries.deleteRoom(req.body.nameValuePairs.roomId)
-        const deletedRoom = await postgresQueries.updateOwnRoomCount(req.body.nameValuePairs)
-        if (result && deletedRoom)
+        const roomCreatorId = await postgresQueries.getRoomCreatorId(req.body.nameValuePairs)
+        if (roomCreatorId != req.body.nameValuePairs.userId) {
             res.status(200).json({
-                message: 'room deleted successfully'
+                deletedRoom: false,
+                message: 'You do not have permission to delete this room!'
             })
-        else
-            res.status(200).json({
-                message: 'room does not exist'
-            })
+        } else {
+            const result = await postgresQueries.deleteRoom(req.body.nameValuePairs.roomId)
+            const deletedRoom = await postgresQueries.updateOwnRoomCount(req.body.nameValuePairs)
+            if (result && deletedRoom)
+                res.status(200).json({
+                    deletedRoom: true,
+                    message: 'Room deleted successfully'
+                })
+            else
+                res.status(200).json({
+                    deletedRoom: false,
+                    message: 'Room does not exist'
+                })
+        }
     } catch (err) {
         console.log(err)
         res.status(500).json({
@@ -73,23 +83,27 @@ router.post('/canJoinRoom', async (req, res) => {
     try {
         console.log(req.body.nameValuePairs)
         const result = await postgresQueries.getRoomCreatorId(req.body.nameValuePairs)
+        const ownRoom = req.body.nameValuePairs
 
         if (req.body.nameValuePairs.userId == result) { //if creator_id (result) == userId, this means the creator is trying to join the room by copying and pasting the room_id in bottom sheet
             res.status(200).json({ //send a message to him, to click on the room below and join
-                canJoin: false,
-                actionForUser: "Try clicking on your room listed below"
+                ownRoom: true,
+                canJoin: true,
+                actionForUser: "You can join the room!"
             })
         } else { //else means that creator_id (result) and userId are not same, this means userId is of joiner
             const result = await postgresQueries.getActiveRoomStatusForAskedRoomID(req.body.nameValuePairs) //get is_active status for the room
             if (result) { //if it is available, join the room
                 res.status(200).json({
+                    ownRoom: false,
                     canJoin: true,
                     actionForUser: "You can join the room!"
                 })
             } else { //otherwise, send msg that room is full
                 res.status(200).json({
+                    ownRoom: false,
                     canJoin: false,
-                    actionForUser: "Room is full!"
+                    actionForUser: "Can't join this room!"
                 })
             }
         }
@@ -106,7 +120,7 @@ router.post('/canJoinRoom', async (req, res) => {
 router.post('/updateJoinerInChatRoom', async (req, res) => {
     try {
         console.log(req.body.nameValuePairs)
-        const result = await postgresQueries.updateJoinerInChatRoom(req.body.nameValuePairs.userId, req.body.nameValuePairs.roomId)
+        const result = await postgresQueries.updateJoinerInChatRoom(req.body.nameValuePairs.userId, req.body.nameValuePairs.roomId, req.body.nameValuePairs.userName)
         if (result) {
             res.status(200).json({
                 message: 'joiner_id updated successfully'
@@ -164,7 +178,76 @@ router.post('/getUserAvatar', async (req, res) => {
     }
 })
 
+router.post('/addRoomToOtherRoomsArray', async (req, res) => {
+    try {
+        console.log(req.body.nameValuePairs)
+        const result = await postgresQueries.addRoomToOtherRoomsArray(req.body.nameValuePairs)
+        if (result) {
+            res.status(200).json({
+                arrayUpdated: true
+            })
+        } else {
+            res.status(200).json({
+                arrayUpdated: false
+            })
+        }
+    } catch (err) {
+        console.log(err)
+        res.status(500).json({
+            error: err.message
+        })
+    }
+})
+
+router.post('/getAllDistinctRoomsFromArrayOfOtherRooms', async (req, res) => {
+    try {
+        console.log(req.body.nameValuePairs)
+        const result = await postgresQueries.getAllDistinctRoomsFromArrayOfOtherRooms(req.body.nameValuePairs)
+        res.status(200).json({
+            count: result.length,
+            active_rooms: result
+        })
+    } catch (err) {
+        console.log(err)
+        res.status(500).json({
+            error: err.message
+        })
+    }
+})
+
+router.post('/getRoomDetailsFromRoomId', async (req, res) => {
+    try {
+        console.log(req.body.nameValuePairs)
+        const result = await postgresQueries.getRoomDetailsFromRoomId(req.body.nameValuePairs.roomId)
+        console.log(result.rows)
+        console.log(result.rows.length)
+        // setTimeout(function () {
+        res.status(200).json({
+            count: result.rows.length,
+            active_rooms: result.rows
+        })
+        // }, 3000);
+
+    } catch (err) {
+        console.log(err)
+        res.status(500).json({
+            error: err.message
+        })
+    }
+})
 
 
 //exporting router
 module.exports = router
+
+
+/**
+ * 1. click on room
+ * 2. enter id
+ * 
+ * click on room, own room
+ * enter id, own, not own
+ * own -> join but not update isAvailable and isActive status
+ * not own -> do the same
+ * 
+ */
