@@ -92,19 +92,28 @@ router.post('/canJoinRoom', async (req, res) => {
                 actionForUser: "You can join the room!"
             })
         } else { //else means that creator_id (result) and userId are not same, this means userId is of joiner
-            const result = await postgresQueries.getActiveRoomStatusForAskedRoomID(req.body.nameValuePairs) //get is_active status for the room
-            if (result) { //if it is available, join the room
-                res.status(200).json({
-                    ownRoom: false,
-                    canJoin: true,
-                    actionForUser: "You can join the room!"
-                })
-            } else { //otherwise, send msg that room is full
+            const checkForJoinerNull = await postgresQueries.getRoomDetailsFromRoomId(req.body.nameValuePairs.roomId)
+            if (checkForJoinerNull.rows[0].joiner_id != null) {
                 res.status(200).json({
                     ownRoom: false,
                     canJoin: false,
-                    actionForUser: "Can't join this room!"
+                    actionForUser: "Room is full!"
                 })
+            } else {
+                const result = await postgresQueries.getActiveRoomStatusForAskedRoomID(req.body.nameValuePairs) //get is_active status for the room
+                if (result) { //if it is available, join the room
+                    res.status(200).json({
+                        ownRoom: false,
+                        canJoin: true,
+                        actionForUser: "You can join the room!"
+                    })
+                } else { //otherwise, send msg that room is full
+                    res.status(200).json({
+                        ownRoom: false,
+                        canJoin: false,
+                        actionForUser: "Can't join this room!"
+                    })
+                }
             }
         }
     }
@@ -239,15 +248,3 @@ router.post('/getRoomDetailsFromRoomId', async (req, res) => {
 
 //exporting router
 module.exports = router
-
-
-/**
- * 1. click on room
- * 2. enter id
- * 
- * click on room, own room
- * enter id, own, not own
- * own -> join but not update isAvailable and isActive status
- * not own -> do the same
- * 
- */

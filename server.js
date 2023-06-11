@@ -30,7 +30,7 @@ io.on('connection', (socket) => {
             if (roomExists) { //checking if room exists
                 socket.username = data.userName //store username in socket session for this client //? needed???
                 socket.join(data.roomId) //join the room
-                socket.broadcast.to(data.roomId).emit('join-room-event', data.userName + ' has connected to this room'); //broadcast msg to that room about the joining of new user
+                // socket.broadcast.to(data.roomId).emit('join-room-event', data.userName + ' has connected to this room'); //broadcast msg to that room about the joining of new user
                 await postgresQueries.updateUserIsFreeStatus(data) //updating is_free in chatting_users
                 const roomName = await postgresQueries.getActiveRoomNameForAskedRoomID(data)
                 socket.emit('join-room-name', roomName) //? needed?
@@ -51,8 +51,17 @@ io.on('connection', (socket) => {
     //broadcast to room about user typing //! currently not used anywhere
     socket.on('user-typing', async (data) => {
         const roomExists = await postgresQueries.getActiveRoomStatusForAskedRoomID(data)
+        console.log(data)
         if (roomExists) {
-            socket.broadcast.to(data.roomId).emit('typing-event', data.userName + ' is typing'); //broadcast msg to that room about user typing
+            socket.broadcast.to(data.roomId).emit('typing-event', data); //broadcast msg to that room about user typing
+        }
+    })
+
+    socket.on('user-typing-stop', async (data) => {
+        const roomExists = await postgresQueries.getActiveRoomStatusForAskedRoomID(data)
+        console.log(data)
+        if (roomExists) {
+            socket.broadcast.to(data.roomId).emit('user-typing-stop-event', true); //broadcast msg to that room about user typing
         }
     })
 
@@ -74,6 +83,7 @@ io.on('connection', (socket) => {
 
     //broadcast to room about user left
     socket.on('leave-room', async (data) => { //data will have username, roomid, message
+        console.log('left room')
         const roomExists = await postgresQueries.getActiveRoomStatusForAskedRoomID(data)
         if (roomExists) {
             await postgresQueries.updateJoinerLeftStatus(data) //updating joiner left status in chatting_rooms
