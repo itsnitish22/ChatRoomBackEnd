@@ -3,6 +3,7 @@ const app = express(); //created app using express
 const morgan = require('morgan') //morgan for logging
 const path = require('path') //path to resolve path refs
 const dbRoutes = require('../model/databaseRoutes') //api for db routes
+const notificationRoutes = require('../model/notificationRoutes')
 var bodyParser = require('body-parser') //body parser
 require('dotenv').config() //config env
 
@@ -17,6 +18,8 @@ app.get('/', (req, res) => {
 
 //seding requests of db endpoint to databaseRoutes
 app.use('/db', dbRoutes)
+
+app.use('/notification', notificationRoutes)
 
 //if request doesn't hit anyone of the above, it will log this error, and if the error is something different, it will forward the request to next which then will handle other errors
 app.use((req, res) => {
