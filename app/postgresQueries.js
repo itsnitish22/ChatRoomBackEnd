@@ -420,6 +420,51 @@ async function getRoomDetailsFromRoomId(roomId) {
     return result;
 }
 
+async function checkIfUserExists(userId) {
+    const query = `SELECT * FROM chatting_users WHERE user_id = $1`;
+    const values = [userId];
+
+    const result = await new Promise((resolve, reject) => {
+        client.query(query, values, (err, result) => {
+            try {
+                if (err) {
+                    console.log(err);
+                    reject(err);
+                } else {
+                    resolve(result);
+                }
+            } catch (err) {
+                console.log(err)
+            }
+        });
+    });
+
+    return result;
+}
+
+async function clearOtherRooms(id, count) {
+    const query = `UPDATE chatting_users SET other_room_ids = $1, other_rooms = $2`;
+    const values = [id, count];
+    var updated = false
+    const result = await new Promise((resolve, reject) => {
+        client.query(query, values, (err, result) => {
+            try {
+                if (err) {
+                    console.log(err);
+                    reject(err);
+                } else {
+                    updated = true
+                    resolve(result);
+                }
+            } catch (err) {
+                console.log(err)
+            }
+        });
+    });
+
+    return updated;
+}
+
 
 //exporting the functions
 module.exports = {
@@ -438,6 +483,8 @@ module.exports = {
     getUserAvatar,
     addRoomToOtherRoomsArray,
     getAllDistinctRoomsFromArrayOfOtherRooms,
-    getRoomDetailsFromRoomId
+    getRoomDetailsFromRoomId,
+    clearOtherRooms,
+    checkIfUserExists
 }
 

@@ -3,6 +3,23 @@ const router = express.Router() //creating router
 const postgresQueries = require('../app/postgresQueries') //importing postgres queries
 const responseWrapper = require('../utils/responseWrapper')
 
+router.post('/clearOtherRooms', async (req, res) => {
+    try {
+        const result = await postgresQueries.clearOtherRooms(null, 0)
+        if (result) {
+            res.status(200).json({
+                updated: true
+            })
+        }
+    } catch (err) {
+        console.log(err)
+        res.status(500).json({
+            error: err.message
+        })
+    }
+})
+
+
 //getting all active room for a userId
 router.post('/getAllUserActiveRooms', async (req, res) => {
     try {
@@ -216,6 +233,27 @@ router.post('/getAllDistinctRoomsFromArrayOfOtherRooms', async (req, res) => {
             count: result.length,
             active_rooms: result
         })
+    } catch (err) {
+        console.log(err)
+        res.status(500).json({
+            error: err.message
+        })
+    }
+})
+
+router.post('/checkIfUserExists', async (req, res) => {
+    try {
+        console.log(req.body.nameValuePairs)
+        const result = await postgresQueries.checkIfUserExists(req.body.nameValuePairs.userId)
+        if (result.rowCount == 0) {
+            res.status(200).json({
+                userExists: false
+            })
+        } else {
+            res.status(200).json({
+                userExists: true
+            })
+        }
     } catch (err) {
         console.log(err)
         res.status(500).json({
