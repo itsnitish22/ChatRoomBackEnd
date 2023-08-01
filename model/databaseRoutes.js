@@ -110,27 +110,35 @@ router.post('/canJoinRoom', async (req, res) => {
             })
         } else { //else means that creator_id (result) and userId are not same, this means userId is of joiner
             const checkForJoinerNull = await postgresQueries.getRoomDetailsFromRoomId(req.body.nameValuePairs.roomId)
-            if (checkForJoinerNull.rows[0].joiner_id != null) {
-                res.status(200).json({
-                    ownRoom: false,
-                    canJoin: false,
-                    actionForUser: "Room is full!"
-                })
-            } else {
-                const result = await postgresQueries.getActiveRoomStatusForAskedRoomID(req.body.nameValuePairs) //get is_active status for the room
-                if (result) { //if it is available, join the room
-                    res.status(200).json({
-                        ownRoom: false,
-                        canJoin: true,
-                        actionForUser: "You can join the room!"
-                    })
-                } else { //otherwise, send msg that room is full
+            if (checkForJoinerNull.rowCount != 0) {
+                if (checkForJoinerNull.rows[0].joiner_id != null) {
                     res.status(200).json({
                         ownRoom: false,
                         canJoin: false,
-                        actionForUser: "Can't join this room!"
+                        actionForUser: "Room is full!"
                     })
+                } else {
+                    const result = await postgresQueries.getActiveRoomStatusForAskedRoomID(req.body.nameValuePairs) //get is_active status for the room
+                    if (result) { //if it is available, join the room
+                        res.status(200).json({
+                            ownRoom: false,
+                            canJoin: true,
+                            actionForUser: "You can join the room!"
+                        })
+                    } else { //otherwise, send msg that room is full
+                        res.status(200).json({
+                            ownRoom: false,
+                            canJoin: false,
+                            actionForUser: "Can't join this room!"
+                        })
+                    }
                 }
+            } else {
+                res.status(200).json({
+                    ownRoom: false,
+                    canJoin: false,
+                    actionForUser: "Room does not exist!"
+                })
             }
         }
     }
