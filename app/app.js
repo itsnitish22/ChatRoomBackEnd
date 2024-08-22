@@ -13,10 +13,10 @@ app.use(bodyParser.json()) //parse json data
 
 //landing page
 app.get('/', (req, res) => {
-    res.status(200).sendFile(path.resolve('public/landingpage.html'))
+    res.status(200).sendFile(path.resolve('public/landingpage.html')) //base endpoint
 })
 
-//seding requests of db endpoint to databaseRoutes
+//seding requests of db endpoint to databaseRoutes for communicating with database
 app.use('/db', dbRoutes)
 
 app.use('/notification', notificationRoutes)
