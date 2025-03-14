@@ -1,4 +1,7 @@
 {
   "appService.defaultWebAppToDeploy": "/subscriptions/bba7e14e-212a-41a7-947c-698c18c291ec/AppServices/subscriptions/bba7e14e-212a-41a7-947c-698c18c291ec/resourceGroups/appsvc_linux_centralus/providers/Microsoft.Web/sites/ChatAppBackEndWS",
-  "appService.deploySubpath": "."
+  "appService.deploySubpath": ".",
+  "terminal.integrated.env.osx": {
+    "PATH": "/usr/local/bin:${env:PATH}"
+  }
 }
